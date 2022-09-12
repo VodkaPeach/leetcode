@@ -8,44 +8,37 @@ class UnionFind:
             return x
         self.root[x] = self.find(self.root[x])
         return self.root[x]
-    def union(self,x,y):
+    def union(self, x, y):
         rootX = self.find(x)
         rootY = self.find(y)
-        if rootX == rootY:
-            if rootX != rootY:
-                if self.rank[rootX] > self.rank[rootY]:
-                    self.root[rootY] = rootX
-                elif self.rank[rootY] < self.rank[rootY]:
-                    self.root[rootX] = rootY
-                else:
-                    self.root[rootY] = rootX
-                    self.rank[rootX]+=1
+        if rootX != rootY:
+            if self.rank[rootX] > self.rank[rootY]:
+                self.root[rootY] = rootX
+            elif self.rank[rootY] < self.rank[rootY]:
+                self.root[rootX] = rootY
+            else:
+                self.root[rootY] = rootX
+                self.rank[rootX]+=1
 class Solution:
     def smallestStringWithSwaps(self, s: str, pairs: List[List[int]]) -> str:
         uf=UnionFind(s)
-        cc = []
-        sss = list(s)
+        groups = defaultdict(list)
+        # union
         for a, b in pairs:
             uf.union(a,b)
+        
+        # path compression
         for i in range(len(s)):
             uf.root[i] = uf.find(i)
+        
         # unique roots for connected components
-        for r in uf.root:
-            if r not in cc:
-                cc.append(r)
-        
-        # component[] contains each component as a list of indices
-        # [[0,3],[1,2]]
-        component=[]
-        for c in cc:
-            # indices of each component
-            component.append([i for i in uf.root if uf.root[i]==c])
-        
-        for j in component:
-            # truecomp=[3,0]
-            # j=[0,3]
-            truecomp = j
-            truecomp.sort(key=lambda x: s[x], reverse=True)
-            for i in range(len(j)):
-                sss[j[i]]=s[truecomp[i]]
-        return str(sss)
+        for i in range(len(uf.root)):
+            groups[uf.root[i]].append(s[i])
+        for key in groups.keys():
+            groups[key].sort(reverse=True)
+            
+        result = []
+        for i in range(len(s)):
+            result.append(groups[uf.root[i]].pop())
+        r = ''.join(result)
+        return r
